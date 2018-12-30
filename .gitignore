@@ -1,0 +1,5 @@
+vendor
+.idea
+composer.lock
+examples/_config.php
+.phpcs-cache
