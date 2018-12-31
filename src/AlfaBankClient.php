@@ -176,6 +176,8 @@ class AlfaBankClient
             'р.' => 'RUB',
             '$'  => 'USD',
             '£'  => 'GBP',
+            '€'  => 'EUR',
+            '₣'  => 'CHF',
         ];
 
         if (!isset($map[$text])) {

@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Solodkiy\AlfaBankRu\Model;
 
+use Brick\Money\Currency;
 use Brick\Money\Money;
 
 final class AccountData
@@ -26,15 +27,15 @@ final class AccountData
 
     /**
      * AccountData constructor.
-     * @param Money $amount
+     * @param Money $balance
      * @param $number
      * @param $name
      * @param $linkId
      * @param $type
      */
-    public function __construct(Money $amount, string $number, string $name, string $linkId, string $type)
+    public function __construct(Money $balance, string $number, string $name, string $linkId, string $type)
     {
-        $this->amount = $amount;
+        $this->amount = $balance;
         $this->number = $number;
         $this->name = $name;
         $this->linkId = $linkId;
@@ -59,5 +60,15 @@ final class AccountData
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getBalance(): Money
+    {
+        return $this->amount;
+    }
+
+    public function getCurrency(): Currency
+    {
+        return $this->amount->getCurrency();
     }
 }
