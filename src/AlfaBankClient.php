@@ -238,7 +238,12 @@ class AlfaBankClient
         });
 
         $this->logger->debug('Go to account page ' . $number . '...');
-        $this->driver->findElement(WebDriverBy::id($accountData->getLinkId()))->click();
+        try {
+            $this->driver->findElement(WebDriverBy::id($accountData->getLinkId()))->click();
+        } catch (\Exception $e) {
+            $this->logger->debug('Clicking error. Trying again...');
+            $this->driver->findElement(WebDriverBy::id($accountData->getLinkId()))->click();
+        }
 
         $this->logger->debug('Go to history page...');
         $x = WebDriverBy::linkText('Показать подробную выписку');
