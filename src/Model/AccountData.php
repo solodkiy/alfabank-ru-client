@@ -11,6 +11,8 @@ final class AccountData
     const ACCOUNT_TYPE_CURRENT = 'current';
     const ACCOUNT_TYPE_SAFE = 'safe';
     const ACCOUNT_TYPE_GOAL = 'goal';
+    const ACCOUNT_TYPE_FAMILY = 'family';
+    const ACCOUNT_TYPE_ALFA_ACCOUNT = 'alfa-account';
 
     /**
      * @var Money
@@ -70,5 +72,10 @@ final class AccountData
     public function getCurrency(): Currency
     {
         return $this->amount->getCurrency();
+    }
+
+    public function hasHistory(): bool
+    {
+        return $this->type !== self::ACCOUNT_TYPE_GOAL;
     }
 }

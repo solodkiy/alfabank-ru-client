@@ -14,10 +14,9 @@ $client = new AlfaBankClient($driver, $config['bank_login'], $config['bank_pass'
 $client->setLogger($logger);
 
 $accounts = $client->getAccountsList();
-if (count($accounts)) {
-    $account = $accounts[0];
-    $logger->info($account->getName() . ': ' . $account->getNumber());
+foreach ($accounts as $account) {
+    $logger->info($account->getName() . ' (' . $account->getType() . '): ' . $account->getNumber());
     $csv = $client->downloadAccountHistory($account->getNumber());
-    $logger->info($csv);
+    $logger->debug($csv);
 }
 

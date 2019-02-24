@@ -192,6 +192,8 @@ class AlfaBankClient
             'Текущий счёт' => AccountData::ACCOUNT_TYPE_CURRENT,
             'Мой сейф'     => AccountData::ACCOUNT_TYPE_SAFE,
             'Мои цели'     => AccountData::ACCOUNT_TYPE_GOAL,
+            'Семейный'     => AccountData::ACCOUNT_TYPE_FAMILY,
+            'Альфа-Счет'   => AccountData::ACCOUNT_TYPE_ALFA_ACCOUNT,
         ];
 
         if (isset($map[$typeString])) {
