@@ -209,6 +209,9 @@ final class TransactionsComparator
             return true;
         } else {
             if ($mode->isSoft()) {
+	        if (is_null($committedInfo)) {
+                    return false;
+                }
                 $sourceCurrency = $committedInfo['amount']->getCurrency();
                 $realCurrency = $committed->getAmount()->getCurrency();
                 if (!$realCurrency->is($sourceCurrency)) {
