@@ -55,8 +55,8 @@ class DescriptionParser
         ^
         ((?<code>[\dA-Z]+)_?\ )?
         ([A-Z]{2}\ )
-        (?<company>([A-Z\d]+\ )?([^>]+))?>
-        (?<city>.+)?\ (\d{2}\.\d{2}\.\d{2})\ (\d{2}\.\d{2}\.\d{2})\ (?<sum>[\d\.]+)\ (?<currency>[A-Z]{3})\ (?<card>[\d+]+)
+        (?<company>([A-Z\d]+\ )?([^>]+))?(>
+        (?<city>.+)?)?\ (\d{2}\.\d{2}\.\d{2})\ (\d{2}\.\d{2}\.\d{2})\ (?<sum>[\d\.]+)\ (?<currency>[A-Z]{3})\ (?<card>[\d+]+)
         (\ \(Apple\ Pay.+?\))? 
         $
         /x';

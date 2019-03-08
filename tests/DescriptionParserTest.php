@@ -97,6 +97,15 @@ class DescriptionParserTest extends TestCase
                     'company' => 'LLC MHT',
                     'amount' => Money::of(199.00, 'RUB'),
                 ]
+            ],
+            [
+                '60103713 RU SUPERMARKET ALYIE PARUS 19.03.04 19.03.04 1122.10 RUR 111111++++++2222',
+                [
+                    'code' => '60103713',
+                    'card' => '111111++++++2222',
+                    'company' => 'SUPERMARKET ALYIE PARUS',
+                    'amount' => Money::of(1122.10, 'RUB'),
+                ]
             ]
         ];
     }
