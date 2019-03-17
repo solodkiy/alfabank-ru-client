@@ -15,7 +15,7 @@ class DescriptionParser
         $regexp = '/
         ^
         (?<card>\d+\++\d+)\s+
-        (?<code>[\dA-Z]+)?\ ?\\\\
+        (?<code>[\dA-Z]+)?\ *[\/\\\\]
         (?<description>.+?)\s+
         (?<commit_date>\d\d\.\d\d\.\d\d)\s+
         (?<hold_date>\d\d\.\d\d\.\d\d)\s+
@@ -28,7 +28,7 @@ class DescriptionParser
 
         if (preg_match($regexp, $description, $m)) {
             $description = $m['description'];
-            $sections = explode('\\', $description);
+            $sections = explode('\\', str_replace('/', '\\', $description));
             $company = $sections[count($sections) - 1];
             $sum = $this->fixSum($m['sum']);
 

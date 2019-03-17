@@ -192,6 +192,29 @@ class DescriptionParserTest extends TestCase
                     'company' => 'LLC MHT',
                     'amount' => Money::of(199.00, 'RUB'),
                 ]
+            ],
+            [
+                '111111++++++2222    193894  /RU/C2C PEREVOD_KLIENTU>MOSKVA            11.03.19 11.03.19 20000.00      RUR MCC6536',
+                [
+                    'code' => '193894',
+                    'card' => '111111++++++2222',
+                    'description' => 'RU/C2C PEREVOD_KLIENTU>MOSKVA',
+                    'hold_date' => LocalDate::of(2019, 3, 11),
+                    'company' => 'C2C PEREVOD_KLIENTU>MOSKVA',
+                    'amount' => Money::of(20000.00, 'RUB'),
+                ]
+            ],
+            [
+                '111111++++++2222    71180001/RU/JOHN SMITH>Visa Direct          17.03.19 17.03.19 1700.00       RUR MCC6012',
+                [
+                    'code' => '71180001',
+                    'card' => '111111++++++2222',
+                    'description' => 'RU/JOHN SMITH>Visa Direct',
+                    'hold_date' => LocalDate::of(2019, 3, 17),
+                    'company' => 'JOHN SMITH>Visa Direct',
+                    'amount' => Money::of(1700.00, 'RUB'),
+
+                ]
             ]
         ];
     }
