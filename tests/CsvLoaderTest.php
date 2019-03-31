@@ -59,6 +59,33 @@ class CsvLoaderTest extends TestCase
         ];
     }
 
+    public function testCents()
+    {
+        $content = file_get_contents(__DIR__ . '/data/cents.csv');
+        $loader = new CsvLoader();
+        $result = $loader->loadFromString($content);
+
+        $data = $this->collectionToArray($result);
+
+        $expectedResult = [
+            [
+                'date' => '2019-03-31',
+                'account' => '40820000000011112222',
+                'amount' => 'USD 0.38',
+                'type' => 'in',
+                'description' => 'Выпл.% на мин.остаток за м-ц по ставке 0.1% годовых (S1=7000.00 USD,S3=0.00 USD,S6=0.00 USD,S12=0.00 USD)',
+            ],
+            [
+                'date' => '2019-03-11',
+                'account' => '40820000000011112222',
+                'amount' => 'USD 7000.00',
+                'type' => 'in',
+                'description' => 'Внутрибанковский перевод между счетами с конвертацией, XXX.',
+            ],
+        ];
+        $this->assertEquals($expectedResult, $data);
+    }
+
     private function collectionToArray(TransactionsCollection $collection) : array
     {
         return map($collection, function (Transaction $transaction) {

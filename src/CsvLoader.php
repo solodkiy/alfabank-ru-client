@@ -77,10 +77,10 @@ class CsvLoader
             $date = LocalDate::fromDateTime($dateTime);
             $transaction->setDate($date);
 
-            $type = $line[6] == '0' ? TransactionType::OUT() : TransactionType::IN();
+            $type = $line[6] === '0' ? TransactionType::OUT() : TransactionType::IN();
             $transaction->setType($type);
 
-            $num = ($line[6] != 0 ? $line[6] : $line[7]);
+            $num = ($line[6] !== '0' ? $line[6] : $line[7]);
             $num = str_replace(',', '.', $num);
             $currency = Utils::getCurrencyByCode($line[2]);
             $amount = Money::of($num, $currency);
