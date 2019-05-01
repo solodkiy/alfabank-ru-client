@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-use Solodkiy\AlfaBankRu\AlfaBankClient;
+use Solodkiy\AlfaBankRuClient\AlfaBankClient;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/_functions.php';

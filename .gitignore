@@ -3,3 +3,4 @@ vendor
 composer.lock
 examples/_config.php
 .phpcs-cache
+.phpunit.result.cache

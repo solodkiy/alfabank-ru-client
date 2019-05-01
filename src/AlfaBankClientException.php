@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Solodkiy\AlfaBankRu\Exception;
+namespace Solodkiy\AlfaBankRuClient;
 
 class AlfaBankClientException extends \RuntimeException
 {

@@ -1,19 +1,18 @@
 <?php
 declare(strict_types = 1);
 
-namespace Solodkiy\AlfaBankRu;
+namespace Solodkiy\AlfaBankRuClient;
 
 use Brick\Money\Currency;
+use Brick\Money\Exception\UnknownCurrencyException;
 use Brick\Money\Money;
 use Facebook\WebDriver\Exception\NoSuchElementException;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverExpectedCondition;
 use Facebook\WebDriver\WebDriverKeys;
-use function Functional\first;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
-use Solodkiy\AlfaBankRu\Model\AccountData;
 use Solodkiy\SmartSeleniumDriver\SmartSeleniumDriver;
 
 class AlfaBankClient
@@ -168,7 +167,7 @@ class AlfaBankClient
     /**
      * @param string $text
      * @return Currency
-     * @throws \Brick\Money\Exception\UnknownCurrencyException
+     * @throws UnknownCurrencyException
      */
     private function createCurrencyFromText(string $text): Currency
     {
@@ -233,7 +232,7 @@ class AlfaBankClient
         $this->auth();
         $this->goToAccountsPage();
         $accounts = $this->getAccountsList();
-        $accountData = first($accounts, function (AccountData $accountData) use ($number) {
+        $accountData = Utils::first($accounts, function (AccountData $accountData) use ($number) {
             return ($accountData->getNumber() == $number);
         });
 
@@ -273,13 +272,13 @@ class AlfaBankClient
         return $content;
     }
 
-    private function waitForFile()
+    private function waitForFile() : string
     {
         $end = microtime(true) + 5;
         while (microtime(true) < $end) {
             $files = $this->driver->getDownloadedFiles();
             if (count($files) > 0) {
-                return first($files);
+                return (string)Utils::first($files);
             }
             usleep(100 * 1000);
         }

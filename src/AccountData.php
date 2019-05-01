@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Solodkiy\AlfaBankRu\Model;
+namespace Solodkiy\AlfaBankRuClient;
 
 use Brick\Money\Currency;
 use Brick\Money\Money;
