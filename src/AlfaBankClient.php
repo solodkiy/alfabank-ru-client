@@ -6,6 +6,8 @@ namespace Solodkiy\AlfaBankRuClient;
 use Brick\Money\Currency;
 use Brick\Money\Exception\UnknownCurrencyException;
 use Brick\Money\Money;
+use DateTimeImmutable;
+use DateTimeZone;
 use Facebook\WebDriver\Exception\NoSuchElementException;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
@@ -113,7 +115,7 @@ class AlfaBankClient
         if ($this->isOnAccountsPage()) {
             return;
         }
-        $this->logger->debug('Go to accounts page...');
+        $this->logger->debug('Going to accounts page...');
         $accountsLink = WebDriverBy::linkText('Счета');
         $this->driver->findElement($accountsLink)->click();
         $header = WebDriverBy::className('x22s');
@@ -243,6 +245,14 @@ class AlfaBankClient
     }
 
 
+    /**
+     * @param $number
+     * @return string
+     * @throws NoSuchElementException
+     * @throws \Facebook\WebDriver\Exception\TimeOutException
+     * @throws \Solodkiy\SmartSeleniumDriver\Exceptions\SmartSeleniumCommandError
+     * @throws AlfaBankClientException
+     */
     public function downloadAccountHistory($number): string
     {
         $this->auth();
@@ -252,7 +262,7 @@ class AlfaBankClient
             return ($accountData->getNumber() == $number);
         });
 
-        $this->logger->debug('Go to account page ' . $number . '...');
+        $this->logger->debug('Going to account page ' . $number . '...');
         try {
             $this->driver->findElement(WebDriverBy::id($accountData->getLinkId()))->click();
         } catch (\Exception $e) {
@@ -260,7 +270,7 @@ class AlfaBankClient
             $this->driver->findElement(WebDriverBy::id($accountData->getLinkId()))->click();
         }
 
-        $this->logger->debug('Go to history page...');
+        $this->logger->debug('Going to history page...');
         $x = WebDriverBy::linkText('Показать подробную выписку');
         $this->driver->wait()->until(WebDriverExpectedCondition::visibilityOfElementLocated($x));
         $this->driver->findElement($x)->click();
@@ -272,13 +282,21 @@ class AlfaBankClient
         $this->driver->manage()->timeouts()->implicitlyWait(1);
         $this->driver->findElement(WebDriverBy::id('pt1:showButton::button'))->click();
 
+        $this->logger->debug('Validating date range...');
+        $realEndDate = $this->driver->findElement(WebDriverBy::id('pt1:id2::content'))->getAttribute('value');
+        $expectedEndDate = (new DateTimeImmutable('now', new DateTimeZone('Europe/Moscow')))->format('d.m.Y');
+        if ($expectedEndDate !== $realEndDate) {
+            $this->logger->error('Incorrect date range. Expected ' . $expectedEndDate . ', got: '. $realEndDate);
+            throw new AlfaBankClientException('Incorrect date range. Expected ' . $expectedEndDate . ', got: '. $realEndDate);
+        }
+
         $this->driver->clearDownloadDir();
 
         $downloadLink = WebDriverBy::id('pt1:downloadCSVLink');
         $this->driver->wait()->until(WebDriverExpectedCondition::elementToBeClickable($downloadLink));
         $this->driver->findElement($downloadLink)->click();
 
-        $this->logger->debug('Wait for start downloading..');
+        $this->logger->debug('Waiting for start download..');
         $fileName = $this->waitForFile();
         $this->logger->debug('Downloading csv..');
         $content = $this->driver->getDownloadedFileByName($fileName);
