@@ -5,6 +5,7 @@ namespace Solodkiy\AlfaBankRuClient;
 
 use Brick\Money\Currency;
 use Brick\Money\Money;
+use Webmozart\Assert\Assert;
 
 final class AccountData
 {
@@ -43,6 +44,16 @@ final class AccountData
         $this->number = $number;
         $this->name = $name;
         $this->linkId = $linkId;
+
+        Assert::oneOf($type, [
+            self::ACCOUNT_TYPE_CURRENT,
+            self::ACCOUNT_TYPE_SAFE,
+            self::ACCOUNT_TYPE_GOAL,
+            self::ACCOUNT_TYPE_FAMILY,
+            self::ACCOUNT_TYPE_ALFA_ACCOUNT,
+            self::ACCOUNT_TYPE_SALARY,
+            self::ACCOUNT_TYPE_BROKER,
+        ]);
         $this->type = $type;
     }
 
