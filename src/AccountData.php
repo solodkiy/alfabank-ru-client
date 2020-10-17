@@ -8,11 +8,13 @@ use Brick\Money\Money;
 
 final class AccountData
 {
-    const ACCOUNT_TYPE_CURRENT = 'current';
-    const ACCOUNT_TYPE_SAFE = 'safe';
-    const ACCOUNT_TYPE_GOAL = 'goal';
-    const ACCOUNT_TYPE_FAMILY = 'family';
-    const ACCOUNT_TYPE_ALFA_ACCOUNT = 'alfa-account';
+    public const ACCOUNT_TYPE_CURRENT      = 'current';
+    public const ACCOUNT_TYPE_SAFE         = 'safe';
+    public const ACCOUNT_TYPE_GOAL         = 'goal';
+    public const ACCOUNT_TYPE_FAMILY       = 'family';
+    public const ACCOUNT_TYPE_ALFA_ACCOUNT = 'alfa-account';
+    public const ACCOUNT_TYPE_SALARY       = 'salary';
+    public const ACCOUNT_TYPE_BROKER       = 'broker';
 
     /**
      * @var Money
