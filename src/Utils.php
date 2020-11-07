@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Solodkiy\AlfaBankRuClient;
 
+use RuntimeException;
+
 class Utils
 {
     /**
@@ -22,10 +24,23 @@ class Utils
             if ($callback($element, $index, $collection)) {
                 return $element;
             }
-
         }
 
         return null;
     }
 
+    /**
+     * @param $regex
+     * @param $string
+     * @return mixed
+     * @throws RuntimeException
+     */
+    public static function extractFirstMatch(string $regex, string $string) : string
+    {
+        if (preg_match($regex, $string, $m)) {
+            return $m[1];
+        } else {
+            throw new RuntimeException('Regex '.$regex.' not matched');
+        }
+    }
 }

@@ -3,18 +3,22 @@ declare(strict_types = 1);
 
 namespace Solodkiy\AlfaBankRuClient;
 
+use Brick\Math\BigDecimal;
+use Brick\Math\Exception\MathException;
 use Brick\Money\Currency;
 use Brick\Money\Exception\UnknownCurrencyException;
 use Brick\Money\Money;
 use DateTimeImmutable;
 use DateTimeZone;
 use Facebook\WebDriver\Exception\NoSuchElementException;
+use Facebook\WebDriver\Exception\TimeOutException;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverExpectedCondition;
 use Facebook\WebDriver\WebDriverKeys;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
+use Solodkiy\SmartSeleniumDriver\Exceptions\SmartSeleniumCommandError;
 use Solodkiy\SmartSeleniumDriver\SmartSeleniumDriver;
 
 class AlfaBankClient
@@ -50,6 +54,11 @@ class AlfaBankClient
         $this->pass = $pass;
     }
 
+    /**
+     * @throws AlfaBankClientException
+     * @throws NoSuchElementException
+     * @throws TimeOutException
+     */
     public function auth()
     {
         if ($this->isAuth()) {
@@ -126,21 +135,32 @@ class AlfaBankClient
      * @param $html
      * @return AccountData[]
      */
-    private function extractAccountFromHtml($html): array
+    private function extractAccountFromHtml(string $html): array
     {
+        $pattern = ':db2" class="x257 xpi"';
+        $accountsCount = substr_count($html, $pattern);
+
         $result = [];
-        for ($i = 0; $i <= 20; $i++) {
-            $accountData = $this->extractAccountData($html, $i);
-            if (!$accountData) {
-                break;
+        for ($i = 0; $i < $accountsCount; $i++) {
+            try {
+                $accountData = $this->extractAccountData($html, $i);
+                $result[] = $accountData;
+            } catch (\RuntimeException $e) {
+                $this->logger->warning('Extract data was unsuccessful: '. $e->getMessage());
+                continue;
             }
-            $result[] = $accountData;
         }
 
         return $result;
     }
 
-    private function extractAccountData($html, $i): ?AccountData
+    /**
+     * @param $html
+     * @param $i
+     * @return AccountData
+     * @throws \RuntimeException
+     */
+    private function extractAccountData($html, $i): AccountData
     {
         $map = [
             'sum'       => '~id="pt2:i1:{I}:s10:cf12".+?class="summ">(.+?)</span>~s',
@@ -153,39 +173,43 @@ class AlfaBankClient
             return str_replace('{I}', $i, $regexp);
         }, $map);
 
+        $sumString = Utils::extractFirstMatch($map['sum'], $html);
+        $currencySymbol = Utils::extractFirstMatch($map['currency'], $html);
+        $name = Utils::extractFirstMatch($map['name'], $html);
+        $number = Utils::extractFirstMatch($map['number'], $html);
+
+        $decimalMoney = $this->convertSumStringToDecimal($sumString);
+        $currency = $this->createCurrencyFromText($currencySymbol);
+
         try {
-            $sumString = $this->extractFirstMatch($map['sum'], $html);
-            $currency = $this->extractFirstMatch($map['currency'], $html);
-            $name = $this->extractFirstMatch($map['name'], $html);
-            $number = $this->extractFirstMatch($map['number'], $html);
-
-            $floatMoney = $this->convertSumStringToFloat($sumString);
-            $currency = $this->createCurrencyFromText($currency);
-            $amount = Money::of($floatMoney, $currency);
-
-            return new AccountData(
-                $amount,
-                $number,
-                $name,
-                'pt2:i1:' . $i . ':s10:cil4',
-                $this->convertStringTypeToId($this->extractFirstMatch($map['type'], $html))
-            );
-        } catch (\RuntimeException $e) {
-            $this->logger->debug('Extract data was unsuccessful: '. $e->getMessage());
-            return null;
+            $amount = Money::of($decimalMoney, $currency);
+        } catch (MathException $e) {
+            throw new \LogicException('Unexpected money value: ' . var_export($decimalMoney, true) . ', ' . var_export($currency, true));
         }
+
+        return new AccountData(
+            $amount,
+            $number,
+            $name,
+            'pt2:i1:' . $i . ':s10:cil4',
+            $this->convertStringTypeToId(Utils::extractFirstMatch($map['type'], $html))
+        );
     }
 
-    private function convertSumStringToFloat(string $sum)
+    /**
+     * @param string $sum
+     * @return BigDecimal
+     * @throws MathException
+     */
+    private function convertSumStringToDecimal(string $sum) : BigDecimal
     {
         $sum = str_replace(' ', '', $sum);
-        return (float)$sum;
+        return BigDecimal::of($sum);
     }
 
     /**
      * @param string $text
      * @return Currency
-     * @throws UnknownCurrencyException
      */
     private function createCurrencyFromText(string $text): Currency
     {
@@ -198,9 +222,13 @@ class AlfaBankClient
         ];
 
         if (!isset($map[$text])) {
-            throw new \RuntimeException('Unknown currency "'.$text.'"');
+            throw new \DomainException('Unknown currency symbol "'.$text.'"');
         }
-        return Currency::of($map[$text]);
+        try {
+            return Currency::of($map[$text]);
+        } catch (UnknownCurrencyException $e) {
+            throw new \LogicException($e->getMessage(), 0, $e);
+        }
     }
 
     private function convertStringTypeToId(string $typeString)
@@ -222,19 +250,6 @@ class AlfaBankClient
         }
     }
 
-    /**
-     * @param $regex
-     * @param $string
-     * @return mixed
-     */
-    private function extractFirstMatch($regex, $string)
-    {
-        if (preg_match($regex, $string, $m)) {
-            return $m[1];
-        } else {
-            throw new \RuntimeException('Regex '.$regex.' not matched');
-        }
-    }
 
     private function isAuth()
     {
@@ -251,8 +266,8 @@ class AlfaBankClient
      * @param $number
      * @return string
      * @throws NoSuchElementException
-     * @throws \Facebook\WebDriver\Exception\TimeOutException
-     * @throws \Solodkiy\SmartSeleniumDriver\Exceptions\SmartSeleniumCommandError
+     * @throws TimeOutException
+     * @throws SmartSeleniumCommandError
      * @throws AlfaBankClientException
      */
     public function downloadAccountHistory($number): string
@@ -260,6 +275,7 @@ class AlfaBankClient
         $this->auth();
         $this->goToAccountsPage();
         $accounts = $this->getAccountsList();
+        $this->logger->debug('Found ' . count($accounts) . ' accounts');
         $accountData = Utils::first($accounts, function (AccountData $accountData) use ($number) {
             return ($accountData->getNumber() == $number);
         });
