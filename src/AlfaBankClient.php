@@ -67,36 +67,49 @@ class AlfaBankClient
 
         $this->logger->debug('Trying auth...');
 
-        $url = 'https://click.alfabank.ru/login/';
+        $url = 'https://click.alfabank.ru/';
         $this->driver->get($url);
+
 
         $loginElement = $this->driver->findElement(WebDriverBy::name('username'));
         $loginElement->click();
         $this->driver->getKeyboard()->sendKeys($this->login);
-
-        $this->driver->findElement(WebDriverBy::name('password'))->click();
-        $this->driver->getKeyboard()->sendKeys($this->pass);
         $this->driver->getKeyboard()->pressKey(WebDriverKeys::ENTER);
 
-        $messages = $this->driver->findElements(WebDriverBy::className('notification__message'));
-        if ($messages) {
-            $errorText = '';
-            foreach ($messages as $message) {
-                $errorText .= $message->getText();
-                if ($message->getText() === 'Учётная запись временно заблокирована. Чтобы восстановить доступ, нажмите "Восстановить логин и пароль".') {
-                    throw new AlfaBankClientException('Account locked', AlfaBankClientException::ACCOUNT_LOCKED);
-                }
+        $passwordElement = WebDriverBy::name('password');
+        $this->driver->wait()->until(WebDriverExpectedCondition::elementToBeClickable($passwordElement));
 
-                if ($message->getText() === 'Логин или пароль указаны неверно. Возможно у вас выбрана другая раскладка клавиатуры.') {
-                    throw new AlfaBankClientException('Invalid password', AlfaBankClientException::INVALID_PASSWORD);
-                }
-            }
-            throw new AlfaBankClientException('Auth error: ' . $errorText, AlfaBankClientException::UNKNOWN_AUTH_ERROR);
-        }
+        $this->driver->findElement($passwordElement)->click();
+        $this->driver->getKeyboard()->sendKeys($this->pass);
+        $this->driver->getKeyboard()->pressKey(WebDriverKeys::ENTER);
+        sleep(1);
+        $this->checkAuthErrors();;
 
         $x = WebDriverBy::linkText('Счета');
         $this->driver->wait()->until(WebDriverExpectedCondition::elementToBeClickable($x));
         $this->logger->debug('Success auth');
+    }
+
+    /**
+     * @throws AlfaBankClientException
+     */
+    private function checkAuthErrors()
+    {
+        $messages = $this->driver->findElements(WebDriverBy::className('notification__content'));
+        if ($messages) {
+            $errorText = '';
+            foreach ($messages as $message) {
+                if ($message->getText() === 'Учётная запись временно заблокирована. Чтобы восстановить доступ, нажмите "Восстановить логин и пароль".') {
+                    throw new AlfaBankClientException('Account locked', AlfaBankClientException::ACCOUNT_LOCKED);
+                }
+
+                if (str_replace("\n", '', $message->getText()) === 'Некорректные данные. Пожалуйста, попробуйте ещё раз.') {
+                    throw new AlfaBankClientException('Invalid password', AlfaBankClientException::INVALID_PASSWORD);
+                }
+                $errorText = $message->getText();
+            }
+            throw new AlfaBankClientException('Auth error: ' . $errorText, AlfaBankClientException::UNKNOWN_AUTH_ERROR);
+        }
     }
 
     public function getAccountsList()
