@@ -70,13 +70,12 @@ class AlfaBankClient
         $url = 'https://click.alfabank.ru/';
         $this->driver->get($url);
 
-
-        $loginElement = $this->driver->findElement(WebDriverBy::name('username'));
+        $loginElement = $this->driver->findElement(WebDriverBy::cssSelector('.input__input_15rsh[aria-label="Логин"]'));
         $loginElement->click();
         $this->driver->getKeyboard()->sendKeys($this->login);
         $this->driver->getKeyboard()->pressKey(WebDriverKeys::ENTER);
 
-        $passwordElement = WebDriverBy::name('password');
+        $passwordElement = WebDriverBy::cssSelector('.input__input_15rsh[aria-label="Пароль"]');
         $this->driver->wait()->until(WebDriverExpectedCondition::elementToBeClickable($passwordElement));
 
         $this->driver->findElement($passwordElement)->click();
