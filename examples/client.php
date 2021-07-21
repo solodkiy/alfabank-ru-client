@@ -8,9 +8,17 @@ require_once __DIR__ . '/_functions.php';
 
 $config = require_once __DIR__ . '/_config.php';
 
+
+$getSms = function () {
+    $line = readline('Sms: ');
+    return $line ? (string)$line : null;
+};
+
+
+
 $logger = new SimpleLogger();
 $driver = createWebDriver($config['selenium_host'], $config['selenium_port']);
-$client = new AlfaBankClient($driver, $config['bank_login'], $config['bank_pass']);
+$client = new AlfaBankClient($driver, $config['bank_login'], $config['bank_pass'], $getSms);
 $client->setLogger($logger);
 
 $accounts = $client->getAccountsList();

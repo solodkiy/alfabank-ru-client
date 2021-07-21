@@ -41,17 +41,24 @@ class AlfaBankClient
     private $pass;
 
     /**
+     * @var ?callable
+     */
+    private $getSmsCodeFunction;
+
+    /**
      * AlfaBankClient constructor.
      * @param SmartSeleniumDriver $driver
      * @param string $login
      * @param string $pass
+     * @param ?callable $getSmsCodeFunction
      */
-    public function __construct(SmartSeleniumDriver $driver, string $login, string $pass)
+    public function __construct(SmartSeleniumDriver $driver, string $login, string $pass, ?callable $getSmsCodeFunction = null)
     {
         $this->logger = new NullLogger();
         $this->driver = $driver;
         $this->login = $login;
         $this->pass = $pass;
+        $this->getSmsCodeFunction = $getSmsCodeFunction;
     }
 
     /**
@@ -84,8 +91,24 @@ class AlfaBankClient
         sleep(1);
         $this->checkAuthErrors();;
 
-        $x = WebDriverBy::linkText('Счета');
-        $this->driver->wait()->until(WebDriverExpectedCondition::elementToBeClickable($x));
+        $smsElements = $this->driver->findElements(WebDriverBy::cssSelector('input.confirmation__input_h4rfk'));
+        if (count($smsElements) > 0) {
+            $smsElements[0]->click();
+            $smsCode = $this->getSmsCode();
+            if (!$smsCode) {
+                throw new AlfaBankClientException("Couldn't get sms code");
+            }
+            $this->driver->getKeyboard()->sendKeys($smsCode);
+            sleep(1);
+        }
+
+        try {
+            $accountsLinkSelector = WebDriverBy::linkText('Счета');
+            $this->driver->wait()->until(WebDriverExpectedCondition::elementToBeClickable($accountsLinkSelector));
+        } catch (NoSuchElementException $e) {
+            //$this->driver->takeScreenshot('/tmp/1.png');
+            throw new AlfaBankClientException('Auth error');
+        }
         $this->logger->debug('Success auth');
     }
 
@@ -353,5 +376,11 @@ class AlfaBankClient
     public function __destruct()
     {
         $this->driver->quit();
+    }
+
+    private function getSmsCode(): ?string
+    {
+        $func = $this->getSmsCodeFunction;
+        return $func ? (string)$func() : null;
     }
 }
