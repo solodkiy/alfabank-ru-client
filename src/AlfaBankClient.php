@@ -77,12 +77,12 @@ class AlfaBankClient
         $url = 'https://click.alfabank.ru/';
         $this->driver->get($url);
 
-        $loginElement = $this->driver->findElement(WebDriverBy::cssSelector('.input__input_15rsh[aria-label="Логин"]'));
+        $loginElement = $this->driver->findElement(WebDriverBy::cssSelector('input[type=text][aria-label="Логин"]'));
         $loginElement->click();
         $this->driver->getKeyboard()->sendKeys($this->login);
         $this->driver->getKeyboard()->pressKey(WebDriverKeys::ENTER);
 
-        $passwordElement = WebDriverBy::cssSelector('.input__input_15rsh[aria-label="Пароль"]');
+        $passwordElement = WebDriverBy::cssSelector('input[type=password][aria-label="Пароль"]');
         $this->driver->wait()->until(WebDriverExpectedCondition::elementToBeClickable($passwordElement));
 
         $this->driver->findElement($passwordElement)->click();
@@ -91,7 +91,7 @@ class AlfaBankClient
         sleep(1);
         $this->checkAuthErrors();;
 
-        $smsElements = $this->driver->findElements(WebDriverBy::cssSelector('input.confirmation__input_h4rfk'));
+        $smsElements = $this->driver->findElements(WebDriverBy::cssSelector('input[inputmode=numeric]'));
         if (count($smsElements) > 0) {
             $smsElements[0]->click();
             $smsCode = $this->getSmsCode();
