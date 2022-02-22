@@ -1,9 +1,13 @@
 <?php
 declare(strict_types=1);
 
+use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Facebook\WebDriver\Remote\WebDriverBrowserType;
+use Facebook\WebDriver\Remote\WebDriverCapabilityType;
 use Facebook\WebDriver\WebDriverDimension;
+use Facebook\WebDriver\WebDriverPlatform;
 use Solodkiy\SmartSeleniumDriver\SmartSeleniumDriver;
 
 class SimpleLogger implements \Psr\Log\LoggerInterface
@@ -46,13 +50,24 @@ class SimpleLogger implements \Psr\Log\LoggerInterface
     }
 };
 
-function createWebDriver(string $host, int $port) : SmartSeleniumDriver
+function createWebDriver(string $host, int $port) : RemoteWebDriver
 {
+    $options = new ChromeOptions();
+    $options->addArguments(array(
+        '--user-agent=' . 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36'
+    ));
+    $options->addArguments(['--proxy-server=http://localhost:18880']);
     $capabilities = DesiredCapabilities::chrome();
-    $url = 'http://' . $host .':' . $port . '/wd/hub';
-    $driver = SmartSeleniumDriver::create($url, $capabilities, 5000);
 
-    $window = new WebDriverDimension(1024, 768);
+    $capabilities->setCapability(ChromeOptions::CAPABILITY, $options);
+
+    //$capabilities = DesiredCapabilities::firefox();
+
+    $url = 'http://' . $host .':' . $port . '/wd/hub';
+    $driver = RemoteWebDriver::create($url, $capabilities, 5000);
+
+    //$window = new WebDriverDimension(1024, 768);
+    $window = new WebDriverDimension(2560, 1600);
     $driver->manage()->window()->setSize($window);
     return $driver;
 }

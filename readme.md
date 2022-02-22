@@ -2,11 +2,11 @@ PHP client for click.alfabank.ru
 ================================
 
 **AlfaBankClient** служит для подключение к онлайн-банку и скачиванию csv с историей транзакций.
-Для работы необходим [smart-selenium](https://hub.docker.com/r/solodkiy/smart-selenium).
+
 ```php
 $logger = new SimpleLogger();
 $driver = createWebDriver($config['selenium_host'], $config['selenium_port']);
-$client = new Solodkiy\AlfaBankRuClient\AlfaBankClient($driver, $config['bank_login'], $config['bank_pass']);
+$client = new Solodkiy\AlfaBankRuClient\AlfaBankWebClient($driver, $config['bank_login'], $config['bank_pass']);
 $client->setLogger($logger);
 
 $accounts = $client->getAccountsList();

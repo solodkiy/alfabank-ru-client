@@ -9,6 +9,7 @@ use Webmozart\Assert\Assert;
 
 final class AccountData
 {
+    public const ACCOUNT_TYPE_UNKNOWN      = 'unknown';
     public const ACCOUNT_TYPE_CURRENT      = 'current';
     public const ACCOUNT_TYPE_SAFE         = 'safe';
     public const ACCOUNT_TYPE_GOAL         = 'goal';
@@ -26,8 +27,6 @@ final class AccountData
 
     private $name;
 
-    private $linkId;
-
     private $type;
 
     /**
@@ -38,12 +37,11 @@ final class AccountData
      * @param $linkId
      * @param $type
      */
-    public function __construct(Money $balance, string $number, string $name, string $linkId, string $type)
+    public function __construct(Money $balance, string $number, string $name, string $type)
     {
         $this->amount = $balance;
         $this->number = $number;
         $this->name = $name;
-        $this->linkId = $linkId;
 
         Assert::oneOf($type, [
             self::ACCOUNT_TYPE_CURRENT,
@@ -60,11 +58,6 @@ final class AccountData
     public function getNumber(): string
     {
         return $this->number;
-    }
-
-    public function getLinkId(): string
-    {
-        return $this->linkId;
     }
 
     public function getType(): string
