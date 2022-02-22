@@ -2,11 +2,10 @@
     "name": "solodkiy/alfabank-ru-client",
     "license": "MIT",
     "require": {
-        "php": "^7.4",
+        "php": "^7.4|^8.0",
         "ext-iconv": "*",
         "psr/log": "^1",
-        "brick/money": "^0.2.4",
-        "solodkiy/smart-selenium-driver": "^0.2.0",
+        "brick/money": "^0.5",
         "webmozart/assert": "^1.9",
         "ext-curl": "*",
         "ext-json": "*"
