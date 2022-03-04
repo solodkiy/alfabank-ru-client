@@ -204,7 +204,7 @@ class AlfaBankWebClient
         );
     }
 
-    private function extractType($type): string
+    private function extractType(string $type): string
     {
         $map = [
             'EE' => AccountData::ACCOUNT_TYPE_CURRENT,
@@ -214,7 +214,12 @@ class AlfaBankWebClient
             'GK' => AccountData::ACCOUNT_TYPE_BROKER,
         ];
 
-        return $map[$type] ?? AccountData::ACCOUNT_TYPE_UNKNOWN;
+        if (!array_key_exists($type, $map)) {
+            $this->logger->warning('Unexpected type code "' . $type . '"');
+            return AccountData::ACCOUNT_TYPE_UNKNOWN;
+        }
+
+        return $map[$type];
     }
 
     private function isWebAuthorized()

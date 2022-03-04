@@ -51,6 +51,7 @@ final class AccountData
             self::ACCOUNT_TYPE_ALFA_ACCOUNT,
             self::ACCOUNT_TYPE_SALARY,
             self::ACCOUNT_TYPE_BROKER,
+            self::ACCOUNT_TYPE_UNKNOWN,
         ]);
         $this->type = $type;
     }
