@@ -6,7 +6,6 @@ namespace Solodkiy\AlfaBankRuClient;
 
 use Facebook\WebDriver\Exception\NoSuchElementException;
 use Facebook\WebDriver\Exception\TimeOutException;
-use Solodkiy\SmartSeleniumDriver\Exceptions\SmartSeleniumCommandError;
 
 class AlfaBankApiClient
 {
@@ -18,31 +17,50 @@ class AlfaBankApiClient
     }
 
     /**
-     * @param $number
+     * @param string $number
+     * @param string $from
+     * @param string $to
      * @return string
-     * @throws NoSuchElementException
-     * @throws TimeOutException
-     * @throws SmartSeleniumCommandError
-     * @throws AlfaBankClientException
+     * @throws \RuntimeException
      */
-    public function downloadAccountHistory(string $number, $from, $to): string
+    public function downloadAccountHistory(string $number, string $from, string $to): array
     {
         $page = 1;
-        $pageSize = 10;
+        $pageSize = 100;
 
         $result = [];
         while (true) {
-            $operations = $this->makeRequest($page, $pageSize, $number, $from, $to);
+            $operations = $this->makeGetOperationsRequest($page, $pageSize, $number, $from, $to);
             if (count($operations) === 0) {
                 break;
             }
             $result = array_merge($result, $operations);
             $page++;
         }
-        return json_encode($result, JSON_UNESCAPED_UNICODE);
+
+        // Unique data
+        $checkMap = [];
+        foreach ($result as $i => $operation) {
+            $key = md5(json_encode($operation));
+            if (array_key_exists($key, $checkMap)) {
+                unset($result[$i]);
+            } else {
+                $checkMap[$key] = true;
+            }
+        }
+        unset($checkMap);
+
+        return array_values($result);
     }
 
-    private function makeRequest(int $page, int $pageSize, string $account, string $from, string $to): array
+    public function getTransactionDetails(string $transactionId): \stdClass
+    {
+        $result = $this->makeRequest('https://web.alfabank.ru/newclick-account-ui/proxy/operations-history-api/operations/' . rawurlencode($transactionId));
+
+        return $result;
+    }
+
+    private function makeGetOperationsRequest(int $page, int $pageSize, string $account, string $from, string $to): array
     {
         $request = [
             'size' => $pageSize,
@@ -55,8 +73,23 @@ class AlfaBankApiClient
             ],
             'from' => $from,
             'to' => $to,
+            'forced' => true,
         ];
 
+        $pageData = $this->makeRequest(
+            'https://web.alfabank.ru/newclick-account-ui/proxy/operations-history-api/operations',
+            $request
+        );
+
+        $operations = $pageData->operations;
+        if (!is_array($operations)) {
+            throw new \RuntimeException('Incorrect operations list');
+        }
+        return $operations;
+    }
+
+    private function makeRequest(string $url, ?array $postData = null)
+    {
         $headers = array_merge(
             $this->tokenHeaders,
             [
@@ -69,10 +102,12 @@ class AlfaBankApiClient
             ]
         );
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://web.alfabank.ru/newclick-operations-history-ui/proxy/operations-history-api/operations');
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($request));
+        if ($postData) {
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+        }
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         //curl_setopt($ch, CURLOPT_VERBOSE, 1);
         //curl_setopt($ch, CURLOPT_STDERR, $verbose = fopen('php://temp', 'rw+'));
@@ -80,15 +115,13 @@ class AlfaBankApiClient
         if ($result === '') {
             throw new \RuntimeException('Empty response');
         }
-        $pageData = json_decode($result, true);
+        $pageData = json_decode($result);
         if (is_null($pageData)) {
             throw new \RuntimeException('Incorrect json');
         }
-        $operations = $pageData['operations'];
-        if (!is_array($operations)) {
-            throw new \RuntimeException('Incorrect operations list');
-        }
-        return $operations;
+
+        return $pageData;
     }
+
 
 }
