@@ -5,6 +5,7 @@ Run as follows: mitmproxy -s anatomy.py
 """
 from mitmproxy import ctx
 import json
+import time
 
 
 class Counter:
@@ -12,14 +13,23 @@ class Counter:
         self.num = 0
 
     def request(self, flow):
-        if flow.request.path == "/newclick-operations-history-ui/proxy/operations-history-api/operations":
-            hstr = flow.request.headers.get('x-csrf-token')
-            print('Token:' + hstr)
+        log = open('log', 'a')
+        log.write(flow.request.path + "\n")
+        if flow.request.path == "/newclick-dashboard-ui/proxy/operations-history-api/operations":
+            fp = open('out.json', 'w')
+            #log.write('ZZZZ' + "\n")
 
-            hstr = flow.request.headers.get('Cookie')
-            print('Cookie:' + hstr)
+            data = {
+                "timestamp": time.time(),
+                "token": flow.request.headers.get('x-csrf-token'),
+                "cookie": flow.request.headers.get('Cookie')
+            }
+
+            fp.write(json.dumps(data))
+            fp.close()
 
 
 addons = [
     Counter()
 ]
+

@@ -6,4 +6,7 @@ return [
     'bank_pass' => 'password',
     'selenium_host' => 'localhost',
     'selenium_port' => 4444,
+
+    'cookie' => '',
+    'token' => '',
 ];

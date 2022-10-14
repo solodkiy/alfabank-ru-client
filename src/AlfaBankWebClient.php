@@ -72,7 +72,7 @@ class AlfaBankWebClient
 
         $this->driver->findElement($passwordElement)->click();
         $this->driver->getKeyboard()->sendKeys($this->pass);
-        $this->driver->getKeyboard()->pressKey(WebDriverKeys::ENTER);
+        $this->driver->findElement(WebDriverBy::cssSelector('.login__button'))->click();
         sleep(1);
         $this->checkLoginFormErrors();
 
@@ -85,7 +85,7 @@ class AlfaBankWebClient
                 throw new AlfaBankClientException("Couldn't get sms code");
             }
             $this->driver->getKeyboard()->sendKeys($smsCode);
-            $this->driver->takeScreenshot('/tmp/3.png');
+            //$this->driver->takeScreenshot('/tmp/3.png');
             sleep(1);
 
             // todo check if sms correct?
@@ -95,9 +95,10 @@ class AlfaBankWebClient
             $historyLinkSelector = WebDriverBy::linkText('История');
             $this->driver->wait()->until(WebDriverExpectedCondition::elementToBeClickable($historyLinkSelector));
         } catch (NoSuchElementException $e) {
-            $this->driver->takeScreenshot('/tmp/4.png');
+            //$this->driver->takeScreenshot('/tmp/4.png');
             throw new AlfaBankClientException('Unknown login error');
         }
+        //$this->driver->takeScreenshot('/tmp/4.png');
 
         // Get headers
         $this->driver->findElement($historyLinkSelector)->click();
@@ -143,14 +144,6 @@ class AlfaBankWebClient
         return $this->extractAccountFromHtml($html);
     }
 
-    private function fixCurrencyCode(string $currency): string
-    {
-        if ($currency === 'RUR') {
-            return 'RUB';
-        }
-        return $currency;
-    }
-
     /**
      * @param string $html
      * @return AccountData[]
@@ -193,7 +186,7 @@ class AlfaBankWebClient
     {
         $amount = Money::ofMinor(
             $data['amount']['value'],
-            Currency::of($this->fixCurrencyCode($data['amount']['currency']))
+            Currency::of(Utils::fixCurrencyCode($data['amount']['currency']))
         );
 
         return new AccountData(

@@ -43,4 +43,12 @@ class Utils
             throw new RuntimeException('Regex '.$regex.' not matched');
         }
     }
+
+    public static function fixCurrencyCode(string $currency): string
+    {
+        if ($currency === 'RUR') {
+            return 'RUB';
+        }
+        return $currency;
+    }
 }

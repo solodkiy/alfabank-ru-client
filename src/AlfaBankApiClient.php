@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Solodkiy\AlfaBankRuClient;
 
-use Facebook\WebDriver\Exception\NoSuchElementException;
-use Facebook\WebDriver\Exception\TimeOutException;
+use Brick\Money\Money;
 
 class AlfaBankApiClient
 {
@@ -13,7 +12,43 @@ class AlfaBankApiClient
 
     public function __construct(array $tokenHeaders)
     {
-        $this->tokenHeaders =$tokenHeaders;
+        $this->tokenHeaders = $tokenHeaders;
+    }
+
+    /**
+     * @return AccountData[]
+     */
+    public function getAccounts(): array
+    {
+        $result = [];
+        $response = $this->makeRequest('https://web.alfabank.ru/newclick-dashboard-ui/proxy/self-transfer-api/transferable-accounts');
+        foreach ($response->accounts as $accountData) {
+            $dto = new AccountData(
+                Money::ofMinor($accountData->amount->value, Utils::fixCurrencyCode($accountData->amount->currency)),
+                $accountData->number,
+                $accountData->description,
+                $this->extractType($accountData->type)
+            );
+            $result[] = $dto;
+        }
+        return $result;
+    }
+
+    private function extractType(string $type): string
+    {
+        $map = [
+            'EE' => AccountData::ACCOUNT_TYPE_CURRENT,
+            'SE' => AccountData::ACCOUNT_TYPE_FAMILY,
+            'FY' => AccountData::ACCOUNT_TYPE_ALFA_ACCOUNT,
+            'EH' => AccountData::ACCOUNT_TYPE_SALARY,
+            'GK' => AccountData::ACCOUNT_TYPE_BROKER,
+        ];
+
+        if (!array_key_exists($type, $map)) {
+            return AccountData::ACCOUNT_TYPE_UNKNOWN;
+        }
+
+        return $map[$type];
     }
 
     /**
@@ -55,7 +90,7 @@ class AlfaBankApiClient
 
     public function getTransactionDetails(string $transactionId): \stdClass
     {
-        $result = $this->makeRequest('https://web.alfabank.ru/newclick-account-ui/proxy/operations-history-api/operations/' . rawurlencode($transactionId));
+        $result = $this->makeRequest('https://web.alfabank.ru/newclick-dashboard-ui/proxy/operations-history-api/operations/' . rawurlencode($transactionId));
 
         return $result;
     }
@@ -77,7 +112,7 @@ class AlfaBankApiClient
         ];
 
         $pageData = $this->makeRequest(
-            'https://web.alfabank.ru/newclick-account-ui/proxy/operations-history-api/operations',
+            'https://web.alfabank.ru/newclick-dashboard-ui/proxy/operations-history-api/operations',
             $request
         );
 
