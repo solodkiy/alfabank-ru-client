@@ -21,7 +21,7 @@ class AlfaBankApiClient
     public function getAccounts(): array
     {
         $result = [];
-        $response = $this->makeRequest('https://web.alfabank.ru/newclick-dashboard-ui/proxy/self-transfer-api/transferable-accounts');
+        $response = $this->makeRequest('https://web.alfabank.ru/api/self-transfer-api/transferable-accounts');
         foreach ($response->accounts as $accountData) {
             $dto = new AccountData(
                 Money::ofMinor($accountData->amount->value, Utils::fixCurrencyCode($accountData->amount->currency)),
@@ -90,7 +90,7 @@ class AlfaBankApiClient
 
     public function getTransactionDetails(string $transactionId): \stdClass
     {
-        $result = $this->makeRequest('https://web.alfabank.ru/newclick-dashboard-ui/proxy/operations-history-api/operations/' . rawurlencode($transactionId));
+        $result = $this->makeRequest('https://web.alfabank.ru/api/operations-history-api/operations/' . rawurlencode($transactionId));
 
         return $result;
     }
@@ -112,7 +112,7 @@ class AlfaBankApiClient
         ];
 
         $pageData = $this->makeRequest(
-            'https://web.alfabank.ru/newclick-dashboard-ui/proxy/operations-history-api/operations',
+            'https://web.alfabank.ru/api/operations-history-api/operations',
             $request
         );
 
