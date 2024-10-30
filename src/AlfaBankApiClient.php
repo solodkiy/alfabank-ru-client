@@ -147,7 +147,7 @@ class AlfaBankApiClient
         //curl_setopt($ch, CURLOPT_VERBOSE, 1);
         //curl_setopt($ch, CURLOPT_STDERR, $verbose = fopen('php://temp', 'rw+'));
         $result = curl_exec($ch);
-        if ($result === '') {
+        if ($result === '' || $result === null) {
             throw new \RuntimeException('Empty response');
         }
         $pageData = json_decode($result);
